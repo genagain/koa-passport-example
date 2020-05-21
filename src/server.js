@@ -5,25 +5,25 @@ const passport = require('koa-passport');
 
 const mainRoutes = require('./routes');
 
-const app = new Koa();
-const PORT = process.env.PORT || 3000;
+const server = new Koa();
+const port = process.env.PORT || 3000;
 
 // sessions
-app.keys = ['super-secret-key'];
-app.use(session(app));
+server.keys = ['super-secret-key'];
+server.use(session(server));
 
 // body parser
-app.use(bodyParser());
+server.use(bodyParser());
 
 // authentication
 require('./auth');
-app.use(passport.initialize());
-app.use(passport.session());
+server.use(passport.initialize());
+server.use(passport.session());
 
 // routes
-app.use(mainRoutes.routes());
+server.use(mainRoutes.routes());
 
 // server
-app.listen(PORT, () => {
-  console.log(`Server listening on port: ${PORT}`);
+server.listen(port, () => {
+  console.log(`Server listening on port: ${port}`);
 });
