@@ -1,10 +1,13 @@
 {
   "name": "koa-passport-example",
   "scripts": {
-    "start": "node src/server.js"
+    "dev": "next",
+    "build": "next build",
+    "start": "next start -p $PORT"
   },
   "dependencies": {
     "@koa/router": "^8.0.8",
+    "@passport-next/passport": "^3.1.0",
     "koa": "^2.4.1",
     "koa-bodyparser": "^4.2.0",
     "koa-passport": "^4.0.1",
