@@ -21,12 +21,13 @@ router.post('/custom', async (ctx) => {
   })(ctx)
 })
 
-router.post('/login',
-  passport.authenticate('local', {
+router.post('/login', async (ctx) => {
+  return passport.authenticate( 'local', {
     successRedirect: '/app',
-    failureRedirect: '/'
-  })
-)
+    failureRedirect: '/',
+    failureFlash: true
+  } )( ctx );
+})
 
 router.get('/logout', async (ctx) => {
   if (ctx.isAuthenticated()) {
