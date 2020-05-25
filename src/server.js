@@ -26,13 +26,18 @@ app.prepare().then(() => {
   server.use(passport.initialize());
   server.use(passport.session());
 
-  // routes
-  server.use(async (ctx) => {
-    await handle(ctx.req, ctx.res);
-    ctx.respond = false;
-    ctx.res.statusCode = 200;
-  });
 
+  router.all('*', async (ctx) => {
+    await handle(ctx.req, ctx.res)
+    ctx.respond = false
+  })
+
+  server.use(async (ctx, next) => {
+    ctx.res.statusCode = 200
+    await next()
+  })
+
+  server.use(router.routes())
   // server
   server.listen(port, () => {
     console.log(`Server listening on port: ${port}`);
