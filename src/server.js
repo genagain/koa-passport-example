@@ -4,6 +4,7 @@ const Router = require('@koa/router')
 const session = require('koa-session');
 const bodyParser = require('koa-bodyparser');
 const passport = require('koa-passport');
+const fs = require('fs');
 
 const port = process.env.PORT || 3000;
 const dev = process.env.NODE_ENV !== 'production';
@@ -26,6 +27,33 @@ app.prepare().then(() => {
   server.use(passport.initialize());
   server.use(passport.session());
 
+  router.post('/login',
+    passport.authenticate('local', {
+      successRedirect: '/app',
+      failureRedirect: '/'
+    })
+  )
+
+  router.get('/logout', async (ctx) => {
+    if (ctx.isAuthenticated()) {
+      ctx.logout()
+      ctx.redirect('/');
+    } else {
+      ctx.body = { success: false };
+      ctx.throw(401);
+    }
+  })
+
+  router.get('/app', async (ctx) => {
+    if (ctx.isAuthenticated()) {
+      await app.render(ctx.req, ctx.res, "/app", ctx.query);
+      ctx.respond = false;
+    } else {
+      console.log('got here')
+      ctx.body = { success: false };
+      ctx.throw(401);
+    }
+  })
 
   router.all('*', async (ctx) => {
     await handle(ctx.req, ctx.res)
