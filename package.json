@@ -1,9 +1,9 @@
 {
   "name": "koa-passport-example",
   "scripts": {
-    "dev": "NODE_OPTIONS='--inspect' next",
+    "dev": "node src/server.js",
     "build": "next build",
-    "start": "next start -p $PORT"
+    "start": "NODE_ENV=production node src/server.js"
   },
   "dependencies": {
     "@koa/router": "^8.0.8",
