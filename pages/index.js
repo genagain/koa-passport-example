@@ -1,11 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>koa-passport example</title>
-</head>
-<body>
+import 'react'
+
+const Index = () => (
   <form action="/login" method="post">
     <p>
       <label>Username:
@@ -21,5 +16,6 @@
       <button type="submit">Log In</button>
     </p>
   </form>
-</body>
-</html>
+)
+
+export default Index

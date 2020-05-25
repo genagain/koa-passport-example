@@ -1,29 +1,73 @@
+const next = require('next');
 const Koa = require('koa');
+const Router = require('@koa/router')
 const session = require('koa-session');
 const bodyParser = require('koa-bodyparser');
 const passport = require('koa-passport');
+const fs = require('fs');
 
-const mainRoutes = require('./routes');
+const port = process.env.PORT || 3000;
+const dev = process.env.NODE_ENV !== 'production';
+const app = next({ dev });
+const handle = app.getRequestHandler();
 
-const app = new Koa();
-const PORT = process.env.PORT || 3000;
+app.prepare().then(() => {
+  const server = new Koa();
+  const router = new Router();
 
-// sessions
-app.keys = ['super-secret-key'];
-app.use(session(app));
+  // sessions
+  server.keys = ['super-secret-key'];
+  server.use(session(server));
 
-// body parser
-app.use(bodyParser());
+  // body parser
+  server.use(bodyParser());
 
-// authentication
-require('./auth');
-app.use(passport.initialize());
-app.use(passport.session());
+  // authentication
+  require('./auth');
+  server.use(passport.initialize());
+  server.use(passport.session());
 
-// routes
-app.use(mainRoutes.routes());
+  router.post('/login',
+    passport.authenticate('local', {
+      successRedirect: '/app',
+      failureRedirect: '/'
+    })
+  )
 
-// server
-app.listen(PORT, () => {
-  console.log(`Server listening on port: ${PORT}`);
-});
+  router.get('/logout', async (ctx) => {
+    if (ctx.isAuthenticated()) {
+      ctx.logout()
+      ctx.redirect('/');
+    } else {
+      ctx.body = { success: false };
+      ctx.throw(401);
+    }
+  })
+
+  router.get('/app', async (ctx) => {
+    if (ctx.isAuthenticated()) {
+      await app.render(ctx.req, ctx.res, "/app", ctx.query);
+      ctx.respond = false;
+    } else {
+      console.log('got here')
+      ctx.body = { success: false };
+      ctx.throw(401);
+    }
+  })
+
+  router.all('*', async (ctx) => {
+    await handle(ctx.req, ctx.res)
+    ctx.respond = false
+  })
+
+  server.use(async (ctx, next) => {
+    ctx.res.statusCode = 200
+    await next()
+  })
+
+  server.use(router.routes())
+  // server
+  server.listen(port, () => {
+    console.log(`Server listening on port: ${port}`);
+  });
+})
