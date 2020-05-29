@@ -2,51 +2,44 @@ const Router = require('@koa/router');
 const passport = require('koa-passport');
 const fs = require('fs');
 
-const router = new Router();
+const createRouter = (app) => {
 
-router.get('/', async (ctx) => {
-  ctx.type = 'html';
-  ctx.body = fs.createReadStream('./src/views/login.html');
-})
+  const router = new Router();
+  const handler = app.getRequestHandler()
 
-router.post('/custom', async (ctx) => {
-  return passport.authenticate('local', (err, user, info, status) => {
-    if (user === false) {
+  router.post('/login',
+    passport.authenticate('local', {
+      successRedirect: '/app',
+      failureRedirect: '/'
+    })
+  )
+
+  router.get('/logout', async (ctx) => {
+    if (ctx.isAuthenticated()) {
+      ctx.logout()
+      ctx.redirect('/');
+    } else {
       ctx.body = { success: false };
       ctx.throw(401);
-    } else {
-      ctx.body = { success: true };
-      return ctx.login(user)
     }
-  })(ctx)
-})
+  })
 
-router.post('/login', async (ctx) => {
-  return passport.authenticate( 'local', {
-    successRedirect: '/app',
-    failureRedirect: '/',
-    failureFlash: true
-  } )( ctx );
-})
+  router.get('/app', async (ctx) => {
+    if (ctx.isAuthenticated()) {
+      await app.render(ctx.req, ctx.res, "/app", ctx.query);
+      ctx.respond = false;
+    } else {
+      ctx.body = { success: false };
+      ctx.throw(401);
+    }
+  })
 
-router.get('/logout', async (ctx) => {
-  if (ctx.isAuthenticated()) {
-    ctx.logout();
-    ctx.redirect('/');
-  } else {
-    ctx.body = { success: false };
-    ctx.throw(401);
-  }
-})
+  router.all('*', async (ctx) => {
+    await handler(ctx.req, ctx.res)
+    ctx.respond = false
+  })
 
-router.get('/app', async (ctx) => {
-  if (ctx.isAuthenticated()) {
-    ctx.type = 'html';
-    ctx.body = fs.createReadStream('./src/views/app.html');
-  } else {
-    ctx.body = { success: false };
-    ctx.throw(401);
-  }
-})
+  return router;
+}
 
-module.exports = router;
+module.exports = createRouter;
