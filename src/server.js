@@ -4,6 +4,7 @@ const Router = require('@koa/router')
 const session = require('koa-session');
 const bodyParser = require('koa-bodyparser');
 const passport = require('koa-passport');
+const logger = require('koa-logger');
 const fs = require('fs');
 const createRouter = require('./routes')
 require('./auth');
@@ -15,6 +16,8 @@ const server = new Koa();
 const router = createRouter(app)
 
 app.prepare().then(() => {
+  // logger
+  server.use(logger());
 
   // sessions
   server.keys = ['super-secret-key'];
